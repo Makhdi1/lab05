@@ -36,9 +36,12 @@ install(TARGETS print
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
 install(EXPORT print-config DESTINATION cmake)
 
+
 if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(third-party/gtest)
+  set_target_properties(gtest PROPERTIES COMPILE_FLAGS "-Wno-error")
+  set_target_properties(gtest_main PROPERTIES COMPILE_FLAGS "-Wno-error")
   file(GLOB ${PROJECT_NAME}_TEST_SOURCES tests/*.cpp)
   add_executable(check ${${PROJECT_NAME}_TEST_SOURCES})
   target_link_libraries(check ${PROJECT_NAME} gtest_main)
