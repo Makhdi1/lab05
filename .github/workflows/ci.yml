@@ -1,4 +1,4 @@
-name: CI with Tests
+name: CI with Tests and Coverage
 on: [push, pull_request]
 jobs:
   build-and-test:
@@ -7,13 +7,21 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Install CMake
-        run: sudo apt-get update && sudo apt-get install -y cmake
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake lcov
       - name: Configure
-        run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DBUILD_TESTS=ON
+        run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
       - name: Build
         run: cmake --build _build
-      - name: Install
-        run: cmake --build _build --target install
       - name: Test
         run: cmake --build _build --target test -- ARGS=--verbose
+      - name: Generate coverage
+        run: |
+          lcov --capture --directory _build --output-file coverage.info
+          lcov --remove coverage.info "/usr/*" "*/third-party/*" "*/tests/*" --output-file coverage.info
+          lcov --list coverage.info
+      - name: Upload to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: \${{ secrets.GITHUB_TOKEN }}
+          file: coverage.info
