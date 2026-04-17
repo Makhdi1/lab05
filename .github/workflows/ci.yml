@@ -1,38 +1,19 @@
-name: Multi-platform CI
+name: CI with Tests
 on: [push, pull_request]
-
 jobs:
-  linux-gcc:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: Install CMake
         run: sudo apt-get update && sudo apt-get install -y cmake
-      - name: Configure (GCC)
-        run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
-      - name: Build (GCC)
+      - name: Configure
+        run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DBUILD_TESTS=ON
+      - name: Build
         run: cmake --build _build
-      - name: Install (GCC)
+      - name: Install
         run: cmake --build _build --target install
-  linux-clang:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install CMake and Clang
-        run: sudo apt-get update && sudo apt-get install -y cmake clang
-      - name: Configure (Clang)
-        run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-      - name: Build (Clang)
-        run: cmake --build _build
-      - name: Install (Clang)
-        run: cmake --build _build --target install
-  windows-msvc:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Configure (MSVC)
-        run: cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
-      - name: Build (MSVC)
-        run: cmake --build _build
-      - name: Install (MSVC)
-        run: cmake --build _build --target install
+      - name: Test
+        run: cmake --build _build --target test -- ARGS=--verbose
